@@ -4,8 +4,10 @@
 #include "datagen/random_source.hpp"
 
 namespace datagen{
-    int ::datagen::foo() {
-        return 0;
+    int get_five() {
+        return 5;
     }
+
+
 }
 
