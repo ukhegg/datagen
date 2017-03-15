@@ -7,13 +7,14 @@ if (${BUILD_SHARED_LIBS})
 endif ()
 
 set(SOURCES
+        include/datagen/buildin.hpp
         include/datagen/datagen.hpp
-        include/datagen/random_source.hpp
-        src/random_source.cpp
+        include/datagen/random.hpp
         )
 
 include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories("${Gsl_DIR}/include")
 
-add_library(datagen ${SOURCES})
+#add_library(datagen ${SOURCES})
 
 
