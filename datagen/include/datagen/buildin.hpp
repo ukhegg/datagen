@@ -88,12 +88,12 @@ namespace datagen {
 
         template<class TNumeric>
         impl::between_t<TNumeric> greater_than(TNumeric lower) {
-            return impl::between_t<TNumeric>(lower, std::numeric_limits<TNumeric>::max());
+            return impl::between_t<TNumeric>(lower + 1, std::numeric_limits<TNumeric>::max());
         }
 
         template<class TNumeric>
         impl::between_t<TNumeric> less_than(TNumeric upper) {
-            return impl::between_t<TNumeric>(std::numeric_limits<TNumeric>::min(), upper);
+            return impl::between_t<TNumeric>(std::numeric_limits<TNumeric>::min(), upper - 1);
         }
     }
 }
