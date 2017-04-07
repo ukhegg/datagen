@@ -1,43 +1,25 @@
 //
-// Created by ukhegg on 15.03.2017.
+// Created by ukheg on 07.04.2017.
 //
 
-#ifndef DATAGEN_LIB_RANDOM_HPP
-#define DATAGEN_LIB_RANDOM_HPP
+#ifndef DATAGEN_RANDOM_HPP
+#define DATAGEN_RANDOM_HPP
 
-#include <type_traits>
-#include <utility>
-#include "datagen/datagen.hpp"
-#include <stdexcept>
 
 namespace datagen {
+	/* 
+	 * value of type TValue can be constructed if one of the following createrias are satisifed:
+	 * 1. function template<class TInjector> TValue get_random(TInjector&, TValue*) is defined
+	 * 2. value is constructible via {}-notation where all parameters are constructible
+	 * 3. value is constructible vai ctor, where all parameters are constructible
+	 * 
+	 * the first met criteria is used to construct random value
+	 */
 
-    namespace impl {
-        template<class t_value>
-        struct random {
-            t_value operator()();
-        };
-
-        template<class t_value>
-        class value_limitation {
-        public:
-            virtual ~value_limitation() = default;
-
-            virtual void apply(t_value &val) const = 0;
-        };
-    }
-
-    template<class t_value>
-    inline t_value random() {
-        return impl::random<t_value>()();
-    }
-
-    template<class t_value>
-    inline t_value random(impl::value_limitation<t_value> const &limit) {
-        t_value val = std::move(random<t_value>());
-        limit.apply(val);
-        return val;
-    }
+	template<class TValue>
+	TValue random()
+	{
+		
+	}
 }
-
-#endif //DATAGEN_LIB_RANDOM_HPP
+#endif //DATAGEN_RANDOM_HPP

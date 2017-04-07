@@ -1,14 +1,16 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.6)
 project(datagen_tests)
 
+set(CMAKE_CXX_STANDARD 14)
 
-set(SOURCES
-        #buildin_random_tests.cpp
-        main.cpp)
-
-include_directories("${datagen_SOURCE_DIR}/include")
 include_directories("${Catch_DIR}/include")
-include_directories("${Gsl_DIR}/include")
-
-add_executable(datagen_tests ${SOURCES})
-#target_link_libraries(datagen_tests datagen)
+include_directories("${CMAKE_SOURCE_DIR}/datagen/include")
+set(SOURCE_FILES 
+        src/any_type_tests.cpp
+        src/braces_contruction_tests.cpp.cpp
+        src/ctor_construction_tests.cpp
+        src/explicit_random_invoker_tests.cpp
+		src/main.cpp
+        src/random_method_selector_tests.cpp
+        )
+add_executable(datagen_tests ${SOURCE_FILES})
