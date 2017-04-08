@@ -33,16 +33,17 @@ namespace
 
 TEST_CASE("ctor constrcution tests") {
     SECTION("can get ctor parameters count") {
-        REQUIRE(get_ctor_size<dummy<>>() == 0);
-        REQUIRE(get_ctor_size<dummy<int>>() == 1);
-        REQUIRE((get_ctor_size<dummy<int, float>>() == 2));
+        REQUIRE(ctor_traits<dummy<>>::params_count == 0);
+        REQUIRE(ctor_traits<dummy<int>>::params_count == 1);
+        REQUIRE((ctor_traits<dummy<int, float>>::params_count == 2));
     }
 
     SECTION("non constructible class ctor params count is 0") {
         struct non_constructible {
             non_constructible() = delete;
         };
-        REQUIRE(get_ctor_size<non_constructible>() == 0);
+        REQUIRE_FALSE(ctor_traits<non_constructible>::is_constructible);
+        REQUIRE(ctor_traits<non_constructible>::params_count == 0);
     }
 
 

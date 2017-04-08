@@ -12,34 +12,75 @@
 
 namespace datagen {
     namespace internal {
-
-
         template<class T, std::size_t>
         using any_type_t = any_type<T>;
 
-        template<class T, class TInjector, std::size_t>
-        using any_type_with_injector_t = any_type_with_injector<T, TInjector>;
-
-        template<class...>
-        struct is_braces_constructible;
-
-        template<class T, std::size_t... Ns>
-        struct is_braces_constructible<T, std::index_sequence<Ns...>>
-                : std::is_constructible<T, any_type_t<T, Ns>...> {
+        template<class T>
+        struct is_true {
+            enum {
+                value = std::is_same<T, std::true_type>::value
+            };
         };
 
-        template<class T, std::size_t... Ns>
-        constexpr auto get_braces_initializer_size(std::index_sequence<Ns...>) noexcept {
-            auto value = 0;
-            int _[]{0, (is_braces_constructible<T, std::make_index_sequence<Ns>>{}
-                        ? value = Ns : value)...};
-            return value;
-        }
+
+        template<class...>
+        struct is_braces_constructible_impl;
+
+        template<class T, size_t ... N>
+        struct is_braces_constructible_impl<T, std::index_sequence<N...>> {
+        private:
+            template<class C, typename... CArgs>
+            static decltype(void(C{std::declval<CArgs>()...}), std::true_type()) test(int);
+
+            template<class C, typename... CArgs>
+            static std::false_type test(...);
+
+        public:
+            enum {
+                value = is_true<decltype(test<T, any_type_t<T, N>...>(0))>::value
+            };
+        };
+
+        template<class T, size_t N>
+        struct is_braces_constructible {
+            enum {
+                value = is_braces_constructible_impl<T, std::make_index_sequence<N>>::value
+            };
+        };
+
+        template<class T, bool IsConstructible, size_t CurrentParamsCount>
+        struct check_braces_contructibility;
+
+        template<class T, size_t CurrentParamsCount>
+        struct check_braces_contructibility<T, false, CurrentParamsCount> {
+            using t = check_braces_contructibility<T, is_braces_constructible<T, CurrentParamsCount - 1>::value,
+                    CurrentParamsCount - 1>;
+            static const auto params_count = t::params_count;
+            static const auto is_constructible = t::is_constructible;
+        };
 
         template<class T>
-        constexpr auto get_braces_initializer_size() noexcept {
-            return get_braces_initializer_size<T>(std::make_index_sequence<DATAGEN_CFG_BRACES_CTOR_LIMIT_SIZE>{});
-        }
+        struct check_braces_contructibility<T, false, 0> {
+            static const auto params_count = 0;
+            static const auto is_constructible = false;
+        };
+
+        template<class T, size_t CurrentParamsCount>
+        struct check_braces_contructibility<T, true, CurrentParamsCount> {
+            static const auto params_count = CurrentParamsCount;
+            static const auto is_constructible = true;
+        };
+
+        template<class T>
+        struct braces_ctor_traits {
+        private:
+            using check = check_braces_contructibility<T,
+                    is_braces_constructible<T, DATAGEN_CFG_BRACES_CTOR_LIMIT_SIZE>::value,
+                    DATAGEN_CFG_BRACES_CTOR_LIMIT_SIZE>;
+        public:
+            static const auto params_count = check::params_count;
+            static const auto is_constructible = check::is_constructible;
+        };
 
         template<class C, class TInjector, size_t ParamsLeft>
         struct braces_initializer_invoker_impl {
@@ -62,7 +103,11 @@ namespace datagen {
         struct braces_initializer_invoker {
             template<class C, class TInjector>
             static C create(TInjector &injector) {
-                return braces_initializer_invoker_impl<C, TInjector, get_braces_initializer_size<C>()>::create(injector);
+                using traits = braces_ctor_traits<C>;
+                static_assert(traits::is_constructible,
+                              "C is not constructible using braces");
+                static const auto params_count = traits::params_count;
+                return braces_initializer_invoker_impl<C, TInjector, params_count>::create(injector);
             }
         };
     }
