@@ -9,7 +9,7 @@ using namespace datagen::internal;
 
 namespace
 {
-	struct injector_t
+	struct random_src_t
 	{
 		template<class C>
 		C create() { return C(); }
@@ -19,16 +19,16 @@ namespace
 	};
 
 	template<>
-	int injector_t::create<int>() { return int_value; }
+	int random_src_t::create<int>() { return int_value; }
 
 	template<>
-	float injector_t::create<float>() { return float_value; }
+	float random_src_t::create<float>() { return float_value; }
 }
 
 
 TEST_CASE("braces constructible tests")
 {
-	injector_t injector;
+	random_src_t injector;
 
 
 
@@ -38,7 +38,9 @@ TEST_CASE("braces constructible tests")
 		injector.float_value = 0.5;
 
 		using simple_t = std::pair<int, float>;
-		auto t = braces_initializer_invoker::create<simple_t>(injector);
+		datagen::value_generation_algorithm<simple_t> alg;
+
+		auto t = braces_initializer_invoker<simple_t>::create(alg, injector);
 
 		REQUIRE(t.first == 1);
 		REQUIRE(t.second == 0.5);
@@ -49,7 +51,8 @@ TEST_CASE("braces constructible tests")
 		struct void_object {};
 
 		void_object v = {};
+        datagen::value_generation_algorithm<void_object> alg;
 
-		auto t = braces_initializer_invoker::create<void_object>(injector);
+		auto t = braces_initializer_invoker<void_object>::create(alg, injector);
 	}
 }

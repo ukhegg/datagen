@@ -11,10 +11,10 @@ namespace
 {
 	template<class ... Args>
 	struct dummy {
-		dummy(Args ... args) {}
+		explicit dummy(Args ... args) {}
 	};
 
-	struct dummy_injector {
+	struct dummy_random_source_t {
 		template<class C>
 		C create() {
 			return C();
@@ -24,7 +24,7 @@ namespace
 	};
 
 	template<>
-	int dummy_injector::create<int>()
+	int dummy_random_source_t::create<int>()
 	{
 		return ++this->t;
 	}
@@ -48,16 +48,18 @@ TEST_CASE("ctor constrcution tests") {
 
 
     SECTION("direct ctor invoker can invoke ctor") {
-        direct_ctor_invoker invoker;
-        dummy_injector injector;
-        auto arr = invoker.create<std::tuple<int, int>>(injector);
+        direct_ctor_invoker<std::tuple<int, int>> invoker;
+        dummy_random_source_t injector;
+		datagen::value_generation_algorithm<std::tuple<int, int>> alg;
+        auto arr = invoker.create(alg, injector);
         REQUIRE(injector.t == 2);
     }
 
 	SECTION("direct ctor invoker can invoke ctor with no parameters")
     {
-		direct_ctor_invoker invoker;
-		dummy_injector injector;
-		auto arr = invoker.create<dummy<>>(injector);
+		direct_ctor_invoker<dummy<>> invoker;
+		datagen::value_generation_algorithm<dummy<>> alg;
+		dummy_random_source_t injector;
+		auto arr = invoker.create(alg, injector);
     }
 }

@@ -7,17 +7,22 @@
 
 using namespace datagen::internal;
 
-struct dummy{};
+namespace {
 
-struct injector_t {
-    template<class T>
-    T create();
+    struct dummy{};
 
-    int i;
-};
+    struct random_src_t {
+        template<class T>
+        T create();
 
-template<>
-int injector_t::create<int>() { return i; }
+        int i;
+    };
+
+    template<>
+    int random_src_t::create<int>() { return i; }
+}
+
+
 
 TEST_CASE("any_type tests") {
     SECTION("can be converted to arithmetic types") {
@@ -43,10 +48,10 @@ TEST_CASE("any_type tests") {
         REQUIRE_FALSE((std::is_convertible<any_type_t, int>::value));
     }
 
-    SECTION("any_type takes value from injector if converting to some type") {
-        injector_t inj;
+    SECTION("any_type takes value from random source if converting to some type") {
+        random_src_t inj;
         inj.i = 666;
-        using any_type_t = any_type_with_injector<dummy, injector_t>;
+        using any_type_t = any_type_with_rsrc<dummy, random_src_t>;
         any_type_t att(inj);
 
         REQUIRE(static_cast<int>(att) == 666);

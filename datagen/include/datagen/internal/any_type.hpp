@@ -16,17 +16,17 @@ namespace datagen {
             }
         };
 
-        template<class TForbidden, class TInjector>
-        struct any_type_with_injector {
-            any_type_with_injector(TInjector& injector) : injector_(injector){}
+        template<class TForbidden, class TRandomSource>
+        struct any_type_with_rsrc {
+            any_type_with_rsrc(TRandomSource& random_source) : random_source_(random_source){}
 
             template<class C,
                     class = typename std::enable_if<!std::is_same<C, TForbidden>::value, void>::type>
             constexpr operator C() const {
-                return std::move(this->injector_.template create<C>());
+                return std::move(this->random_source_.template create<C>());
             }
         private:
-            TInjector& injector_;
+            TRandomSource& random_source_;
         };
     }
 }

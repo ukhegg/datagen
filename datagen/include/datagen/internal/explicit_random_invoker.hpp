@@ -6,44 +6,37 @@
 #define DATAGEN_EXPLICIT_RANDOM_INVOKER_HPP
 
 #include <type_traits>
+#include "datagen/random_source_fwd.hpp"
+#include "datagen/value_generation_algorithm.hpp"
 namespace datagen {
-    //template<class TInjector, class TValue>
-	//TValue get_random(TInjector&, TValue*);
-
     namespace internal {
+        using namespace datagen;
 
-		template<class TValue>
-		struct has_explicit_random {
+		template<class T>
+		struct has_random_generation_algorithm
+		{
 		private:
-			struct dummy_injector
-			{
-				template<class C>
-				static C create();
-			};
+			static std::false_type test(...) {};
 
-			static std::false_type test(...);
+			template<class C>
+			static value_generation_algorithm<C>& get_alg() { return std::declval<C>(); }
 
 			template<class C>
 			static typename std::enable_if<
-				std::is_same<
-					TValue,
-					decltype(::datagen::get_random(std::declval<dummy_injector&>(), std::declval<C*>()))>::value,
+				std::is_same<T, decltype(get_alg<C>().get_random(std::declval<random_source_base&>()))>::value,
 				std::true_type>::type test(C);
 		public:
-			using test_result = decltype(has_explicit_random::test(std::declval<TValue>()));
-
-			//static const bool value = std::is_same<std::true_type, test_result>::value;
-			enum { value = std::is_same<std::true_type, test_result>::value };
+			enum { value = std::is_same<std::true_type, decltype(test(std::declval<T>()))>::value };
 		};
 
-		struct direct_get_random_invoker {
-			template<class C, class TInjector>
-			static C create(TInjector &injector) {
-				static_assert(has_explicit_random<C>::value,
-					"get_random(TInjector&, C*) overload for type C not defined");
-				return ::datagen::get_random(injector, static_cast<C*>(nullptr));
-			}
-		};
+        template<class TValue>
+        struct direct_get_random_invoker {
+			using value_generation_algorithm_t = value_generation_algorithm<TValue>;
+
+            static TValue create(value_generation_algorithm_t& alg, random_source_base &random_source) {
+				return std::move(alg.get_random(random_source));
+            }
+        };
     }
 }
 #endif //DATAGEN_EXPLICIT_RANDOM_INVOKER_HPP

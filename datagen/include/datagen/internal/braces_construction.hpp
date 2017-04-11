@@ -7,6 +7,7 @@
 
 #include "datagen/internal/any_type.hpp"
 #include "datagen/internal/config.hpp"
+#include "datagen/value_generation_algorithm.hpp"
 #include <cstddef>
 #include <utility>
 
@@ -53,8 +54,9 @@ namespace datagen {
 
         template<class T, size_t CurrentParamsCount>
         struct check_braces_contructibility<T, false, CurrentParamsCount> {
-            using t = check_braces_contructibility<T, is_braces_constructible<T, CurrentParamsCount - 1>::value,
-                    CurrentParamsCount - 1>;
+            using t = check_braces_contructibility<T,
+                                                   is_braces_constructible<T, CurrentParamsCount - 1>::value,
+                                                   CurrentParamsCount - 1>;
             static const auto params_count = t::params_count;
             static const auto is_constructible = t::is_constructible;
         };
@@ -82,32 +84,33 @@ namespace datagen {
             static const auto is_constructible = check::is_constructible;
         };
 
-        template<class C, class TInjector, size_t ParamsLeft>
+        template<class C, class TRandomSource, size_t ParamsLeft>
         struct braces_initializer_invoker_impl {
             template<class ... Args>
-            static C create(TInjector &injector, Args ... args) {
-                using sub_invoker_t = braces_initializer_invoker_impl<C, TInjector, ParamsLeft - 1>;
-                any_type_with_injector<C, TInjector> one_more_param(injector);
-                return sub_invoker_t::create(injector, one_more_param, args...);
+            static C create(TRandomSource &random_source, Args ... args) {
+                using sub_invoker_t = braces_initializer_invoker_impl<C, TRandomSource, ParamsLeft - 1>;
+                any_type_with_rsrc<C, TRandomSource> one_more_param(random_source);
+                return sub_invoker_t::create(random_source, one_more_param, args...);
             }
         };
 
-        template<class C, class TInjector>
-        struct braces_initializer_invoker_impl<C, TInjector, 0> {
+        template<class C, class TRandomSource>
+        struct braces_initializer_invoker_impl<C, TRandomSource, 0> {
             template<class ... Args>
-            static C create(TInjector &injector, Args ... args) {
-                return std::move(C(args...));
+            static C create(TRandomSource &random_source, Args ... args) {
+                return C{args...};
             }
         };
 
+        template<class TValue>
         struct braces_initializer_invoker {
-            template<class C, class TInjector>
-            static C create(TInjector &injector) {
-                using traits = braces_ctor_traits<C>;
+            template<class TRandomSource>
+            static TValue create(value_generation_algorithm<TValue>& alg, TRandomSource &random_source) {
+                using traits = braces_ctor_traits<TValue>;
                 static_assert(traits::is_constructible,
-                              "C is not constructible using braces");
+                              "TValue is not constructible using braces");
                 static const auto params_count = traits::params_count;
-                return braces_initializer_invoker_impl<C, TInjector, params_count>::create(injector);
+                return braces_initializer_invoker_impl<TValue, TRandomSource, params_count>::create(random_source);
             }
         };
     }

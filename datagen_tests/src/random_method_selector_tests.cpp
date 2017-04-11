@@ -9,18 +9,20 @@ using namespace datagen::internal;
 
 namespace
 {
-	struct dummy { int val; };
+	struct dummy2 { int val; };
 }
 
 namespace datagen
 {
-	template<class TInjector>
-	dummy get_random(TInjector& inj, dummy*)
+	template<>
+	struct value_generation_algorithm<dummy2>
 	{
-		return {5};
-	}
+		dummy2 get_random(random_source_base&)
+		{
+			return dummy2{ 666 };
+		}
+	};
 }
-
 
 TEST_CASE("random_method_selector tests") {
     SECTION("check braces ctor for braces constructible class"){
@@ -29,9 +31,9 @@ TEST_CASE("random_method_selector tests") {
 			int a{ 0 };
 		};
 
-        using braces_ctor_t = random_method_selector<braces_constructible>::braces_ctor_invoker ;
+        using braces_ctor_t = random_method_selector<braces_constructible>::braces_invoker ;
 
-		using expected_ctor_t = braces_initializer_invoker;
+		using expected_ctor_t = braces_initializer_invoker<braces_constructible>;
 
         REQUIRE( (std::is_same<expected_ctor_t, braces_ctor_t>::value) );
     }
@@ -41,10 +43,10 @@ TEST_CASE("random_method_selector tests") {
 
 		private:
 			int a{ 0 };
-			braces_non_constructible();
+			braces_non_constructible(){}
 		};
 
-		using braces_ctor_t = random_method_selector<braces_non_constructible>::braces_ctor_invoker;
+		using braces_ctor_t = random_method_selector<braces_non_constructible>::braces_invoker;
 
 		using expected_ctor_t = none_t;
 
@@ -57,8 +59,8 @@ TEST_CASE("random_method_selector tests") {
 			ctor_constructible(int) {}
 		};
 
-		using direct_ctor_t = random_method_selector<ctor_constructible>::direct_ctor_invoker;
-		using expected_ctor_t = direct_ctor_invoker;
+		using direct_ctor_t = random_method_selector<ctor_constructible>::ctor_invoker;
+		using expected_ctor_t = direct_ctor_invoker<ctor_constructible>;
 		REQUIRE((std::is_same<direct_ctor_t, expected_ctor_t>::value));
     }
 
@@ -69,22 +71,22 @@ TEST_CASE("random_method_selector tests") {
 			ctor_non_constructible() {}
 		};
 
-		using direct_ctor_t = random_method_selector<ctor_non_constructible>::direct_ctor_invoker;
+		using direct_ctor_t = random_method_selector<ctor_non_constructible>::ctor_invoker;
 		using expected_ctor_t = none_t;
 		REQUIRE((std::is_same<direct_ctor_t, expected_ctor_t>::value));
 	}
 
 	SECTION("direct_invoker is direct_get_random_invoker for class with defined random function")
     {
-		using invoker_t = random_method_selector<dummy>::direct_random_invoker;
-		REQUIRE(has_explicit_random<dummy>::value);
-		REQUIRE((std::is_same<invoker_t, direct_get_random_invoker>::value));
+		using invoker_t = random_method_selector<dummy2>::direct_random_invoker;
+		REQUIRE(has_random_generation_algorithm<dummy2>::value);
+		REQUIRE((std::is_same<invoker_t, direct_get_random_invoker<dummy2>>::value));
     }
 
 	SECTION("direct_invoker is none_t for class with no random function defined")
 	{
 		struct temp{};
-		REQUIRE_FALSE(has_explicit_random<temp>::value);
+		REQUIRE_FALSE(has_random_generation_algorithm<temp>::value);
 
 		using invoker_t = random_method_selector<temp>::direct_random_invoker;
 		REQUIRE((std::is_same<invoker_t, none_t>::value));
