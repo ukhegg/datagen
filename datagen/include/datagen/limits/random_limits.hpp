@@ -13,6 +13,9 @@ namespace datagen
 
 	namespace limits
 	{
+		//template<class T, class L> void adjust_algorithm(random_source_base&, L const&, value_generation_algorithm<T>&);
+		//template<class T, class L> void adjust_value(random_source_base&, L const&, T&);
+
 		namespace internal
 		{
 			//void apply(){}
@@ -32,10 +35,12 @@ namespace datagen
 				                                            void>::value,
 				                               std::true_type>::type test(V, L);
 			public:
-				static constexpr auto value = decltype(test(std::declval<TValue>(), std::declval<TLimit>())){};
+                enum{
+                    value = std::is_same<std::true_type, decltype(test(std::declval<TValue>(), std::declval<TLimit>()))>::value
+                };
 			};
 
-			// resolves to std::true_type is datagen::limits::apply(random_source_base&,
+			// resolves to std::true_type is datagen::limits::adjust_value(random_source_base&,
 			//                                                      TLimit const&,
 			//                                                      TValue&) is defined
 			template <class TValue, class TLimit>
@@ -51,7 +56,9 @@ namespace datagen
 				                                            void>::value,
 				                               std::true_type>::type test(V, L);
 			public:
-				static constexpr auto value = decltype(test(std::declval<TValue>(), std::declval<TLimit>())){};
+                enum {
+                    value = std::is_same<std::true_type, decltype(test(std::declval<TValue>(), std::declval<TLimit>()))>::value
+                };
 			};
 
 			template <class TValue, class TLimit, bool IsAlgorithmLimit>
@@ -70,7 +77,7 @@ namespace datagen
 
 				static void apply(random_source_base& r_source, TLimit const& limit, value_generation_algorithm<TValue>& alg)
 				{
-					limits::adjust_algorithm(r_source, limit, alg);
+					::datagen::limits::adjust_algorithm(r_source, limit, alg);
 				}
 			};
 
@@ -90,7 +97,7 @@ namespace datagen
 					static_assert(is_value_limit<TValue, TLimit>::value,
 						"TLimit is not a TValue limit");
 
-					limits::adjust_value(r_source, limit, value);
+					::datagen::limits::adjust_value(r_source, limit, value);
 				}
 			};
 

@@ -22,5 +22,4 @@ set(SOURCES
         include/datagen/stl_random.hpp
         include/datagen/value_generation_algorithm.hpp
         )
-OrganizeSources(${SOURCES})
 add_custom_target(datagen SOURCES ${SOURCES})

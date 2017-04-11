@@ -19,7 +19,8 @@ will print something like
 ```
 The answer to the question of everything is:-511889235
 ```
-## Simple usage for structs(or classes that can be constrcuted using braces notation)
+## Simple usage for structs(or classes that can be constructed using braces notation)
+The same way a structure can be generated(or class with open members)
 ```cpp
 #include <datagen/random.hpp>
 #include <iostream>
@@ -96,8 +97,8 @@ will produce
 random dummy is {val_: {a: -9.65806e+23 b: -399852536 c: 7.99812e+26}}
 ```
 ## Overriding generation algorithm
-To use custom generation algorithm, just provde specialization of struct value_generate_algorithm
-from namespace datagen
+To use custom generation algorithm for T, just provide specialization of `struct value_generate_algorithm`
+from namespace datagen with a `T get_random(random_source_base&)` member function
 ```cpp
 #include <datagen/random.hpp>
 #include <iostream>
@@ -137,7 +138,7 @@ int main(int argc, char* argv[]) {
 # Type construction 
 
 When constructing a type, datagen looks for possibilities in the following order:
-1. specialization of class value_generate_algorithm with get_random method, something like this
+1. specialization of `struct value_generation_algorithm` with `get_random` method, something like this
 ```cpp
     template<class Ty, size_t N>
     struct value_generation_algorithm<std::array<Ty, N>> {
@@ -151,7 +152,8 @@ When constructing a type, datagen looks for possibilities in the following order
 
 # Type limits
 Datagen provides a way to change explicit generation algorithm behavior, 
-using algorithm and type limits. Look:
+using algorithm and type limits. 
+Simple example:
 ```cpp
 #include <datagen/random.hpp>
 #include <datagen/limits/builtin_limits.hpp>
@@ -168,48 +170,82 @@ int main(int argc, char* argv[]) {
 }
 // prints 'The answer to the question of everything is:42'
 ```
-Limitations are separated in two categories: algorithm limitations and value limitations.
-Algorithm limitations are applyed to explicit generation algorithm before it is used.
-Value limitations are applied to already generated value to fix it's value.
-Both are implemented in single struct random_limit<T>
-To create suctom algorithm/value limitation, derive from random_limit<T>
-and override adjust_[algorithm|value] method:
-```cpp
-struct dummy {
-	int answer1;
-	int answer2;
+Limitations are separated in two categories: 
+* **Algorithm limitations**
 
-	friend std::ostream& operator<<(std::ostream& os, dummy const& obj){
-		return os << "{answer1:" << obj.answer1 << ",answer2:" << obj.answer2 << '}';
-	}
+  Limitations of this kind are applied to `value_generation_algorithm<T>` before values of type `T` are generated. 
+  So, you'll need custom `value_generation_algorithm<T>` to create useful algorithm limitations.
+* **Value limitations**
+
+  are applied to generated value.
+  
+  
+Value generation algorithm looks something like(*pseudocode*):
+```cpp
+template<T> random(TLimits ... limits){
+    random_source r_source;
+    value_generation_algorithm<T> alg;
+    apply_algorithm_limits(r_source, alg, limits);
+    auto val = alg.get_random(r_source);
+    apply_value_limits(r_source, val, limits);
+    return val;
+}
+```
+##### Custom limitations
+To add custom `dummy_limit` for `struct dummy`, you need to implement the following free function:
+```cpp
+namespace datagen{
+    namespace limits{
+        //this method is responsible for algorithm limitation
+        void adjust_algorithm(random_source_base&, 
+                              dummy_limit const& limit, 
+                              value_generation_algorithm<dummy>& alg){...}
+        //this one is responsible for value limitations   
+        void adjust_value(random_source_base&, 
+                          dummy_limit const& limit, 
+                          dummy& value){...}
+    }
+}
+```
+See an example:
+```cpp
+struct dummy{
+	std::string greetings;
 };
 
-namespace datagen {
-	template<>
-	struct value_generation_algorithm<dummy> {
-		dummy get_random(random_source_base& r_source) { return dummy_prototype; }
-		dummy dummy_prototype{ 42, 42 };
+namespace datagen
+{
+	template<> struct value_generation_algorithm<dummy>{
+		dummy get_random(random_source_base&){
+			return dummy{ default_greetings };
+		}
+		std::string default_greetings{ "**** off!" };
 	};
 }
+struct dummy_alg_limit{};
+struct dummy_value_limit{};
 
-struct dummy_alg_limit : public datagen::limits::random_limit<dummy>{
-	~dummy_alg_limit() override = default;
+namespace datagen{
+	namespace limits{
+		void adjust_algorithm(random_source_base&,
+		                      dummy_alg_limit const& limit,
+		                      value_generation_algorithm<dummy>& alg){
+			alg.default_greetings = "Hello world";
+		}
 
-	void adjust_value(datagen::random_source_base&, dummy& value) const override {
-		value.answer2 = 41;
+		void adjust_value(random_source_base&,
+		                  dummy_value_limit const& limit,
+		                  dummy& value){
+			value.greetings.append("!");
+		}
 	}
-
-	void adjust_algorithm(datagen::random_source_base&, datagen::value_generation_algorithm<dummy>& alg_params) const override {
-		alg_params.dummy_prototype.answer1 = 43;
-	}
-};
-
-int main(int argc, char* argv[]){
-	std::cout << "random dummy is " << datagen::random<dummy>() << std::endl;
-	std::cout << "random dummy is " << datagen::random<dummy>(dummy_alg_limit());
-	getchar();
 }
-//prints:
-//random dummy is {answer1:42,answer2:42}
-//random dummy is {answer1:43,answer2:41}
+
+int main(int argc, char* argv[])
+{
+	//prints '**** off!'
+	std::cout << datagen::random<dummy>().greetings << std::endl;
+	//prints 'Hello world!'
+	std::cout << datagen::random<dummy>(dummy_alg_limit(), dummy_value_limit()).greetings;
+}
 ```

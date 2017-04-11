@@ -28,17 +28,21 @@ namespace datagen
 				TBuiltin upper_bound;
 			};
 
-			struct odd_t{};
+			struct odd_t
+			{
+			};
 
-			struct even_t{};
+			struct even_t
+			{
+			};
 		}
 
 
 		template <class TValueType, class TLimitType>
 		void adjust_value(random_source_base&, details::between_t<TLimitType> const& limit, TValueType& value)
 		{
-			if ( limit.lower_bound > std::numeric_limits<TValueType>::max() ) throw std::runtime_error("lower bound is bigger than target type's max");
-			if ( limit.upper_bound < std::numeric_limits<TValueType>::min() ) throw std::runtime_error("upper bound is less than target type's min");
+			if (limit.lower_bound > std::numeric_limits<TValueType>::max()) throw std::runtime_error("lower bound is bigger than target type's max");
+			if (limit.upper_bound < std::numeric_limits<TValueType>::min()) throw std::runtime_error("upper bound is less than target type's min");
 			if (value >= limit.lower_bound && value <= limit.upper_bound) return;
 
 			auto max_range = static_cast<double>(std::numeric_limits<TValueType>::max())
@@ -52,7 +56,7 @@ namespace datagen
 		template <class TBuiltin>
 		void adjust_value(random_source_base&, details::odd_t const&, TBuiltin& value)
 		{
-			if(value % 2 == 1) return;
+			if (value % 2 == 1) return;
 			if (value == std::numeric_limits<TBuiltin>::max()) value -= 1;
 			else value += 1;
 		}
@@ -68,10 +72,11 @@ namespace datagen
 
 		template <class TBuiltin1, class TBuildin2>
 		auto between(TBuiltin1 lower_bound, TBuildin2 upper_bound)
-			-> details::between_t<decltype(lower_bound + upper_bound)>
+		-> details::between_t<decltype(lower_bound + upper_bound)>
 		{
 			using r_type = decltype(lower_bound + upper_bound);
-			return details::between_t<r_type>(lower_bound, upper_bound);
+			return details::between_t<r_type>(static_cast<r_type>(lower_bound),
+			                                  static_cast<r_type>(upper_bound));
 		}
 
 		template <class TBuiltin>
@@ -101,14 +106,14 @@ namespace datagen
 		template <class TInteger>
 		details::odd_t odd()
 		{
-			static_assert(std::is_integral<TInteger>::value, "can be used only with integral types"); 
+			static_assert(std::is_integral<TInteger>::value, "can be used only with integral types");
 			return details::odd_t();
 		}
 
 		template <class TInteger>
 		details::even_t even()
 		{
-			static_assert(std::is_integral<TInteger>::value, "can be used only with integral types"); 
+			static_assert(std::is_integral<TInteger>::value, "can be used only with integral types");
 			return details::even_t();
 		}
 	}

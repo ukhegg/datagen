@@ -22,5 +22,4 @@ set(SOURCE_FILES
 		src/stl_random_tests.cpp
 		src/builtin_limits_tests.cpp
         src/random_limits_tests.cpp)
-OrganizeSources(${SOURCE_FILES})
 add_executable(datagen_tests ${SOURCE_FILES})
