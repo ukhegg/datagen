@@ -35,40 +35,26 @@ namespace datagen
 
 namespace
 {
-	struct default_value_limit
-	{
-	};
+	struct default_value_limit { };
 
-	struct dummy_value_limit
-	{
-	};
+	struct dummy_value_limit { };
 
-	struct custom_alg_limit
-	{
-	};
+	struct custom_alg_limit { };
 
-	struct custom_val_limit
-	{
-	};
+	struct custom_val_limit { };
 
-	struct uni_limit
-	{
-	};
+	struct uni_limit { };
 
 	struct adjust_dummy_alg_value
 	{
-		explicit adjust_dummy_alg_value(int val) : val(val)
-		{
-		}
+		explicit adjust_dummy_alg_value(int val) : val(val) { }
 
 		int val{0};
 	};
 
 	struct adjust_dummy_inst_value
 	{
-		explicit adjust_dummy_inst_value(int val) : val(val)
-		{
-		}
+		explicit adjust_dummy_inst_value(int val) : val(val) { }
 
 		int val{0};
 	};
@@ -88,22 +74,13 @@ namespace datagen
 			a.val = 666;
 		}
 
+		void adjust_algorithm(random_source_base&, custom_alg_limit const&, value_generation_algorithm<dummy>&) { }
 
-		void adjust_algorithm(random_source_base&, custom_alg_limit const&, value_generation_algorithm<dummy>&)
-		{
-		}
+		void adjust_value(random_source_base&, custom_val_limit const&, dummy&) { }
 
-		void adjust_value(random_source_base&, custom_val_limit const&, dummy&)
-		{
-		}
+		void adjust_algorithm(random_source_base&, uni_limit const&, value_generation_algorithm<dummy>&) { }
 
-		void adjust_algorithm(random_source_base&, uni_limit const&, value_generation_algorithm<dummy>&)
-		{
-		}
-
-		void adjust_value(random_source_base&, uni_limit const&, dummy&)
-		{
-		}
+		void adjust_value(random_source_base&, uni_limit const&, dummy&) { }
 
 		void adjust_algorithm(random_source_base&, adjust_dummy_alg_value const& l, value_generation_algorithm<dummy>& alg)
 		{

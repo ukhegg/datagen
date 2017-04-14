@@ -9,6 +9,7 @@
 #include "datagen/internal/random_method_selector.hpp"
 #include "datagen/limits/random_limits.hpp"
 #include <random>
+#include "limits/scoped_limit.hpp"
 
 namespace datagen
 {
@@ -27,31 +28,74 @@ namespace datagen
 		template <class TValue>
 		struct random_creator<TValue, true>
 		{
-			template <class TRandomSource>
-			static TValue create(value_generation_algorithm<TValue>& alg, TRandomSource& r_src)
+			static TValue create(value_generation_algorithm<TValue>& alg, random_source_base& r_src)
 			{
 				TValue res;
 				r_src.generate_random_sequence((int8_t *)&res, sizeof(TValue));
 				return res;
 			}
 		};
-	}
 
-	template <class TValue>
-	TValue random_source_base::create()
-	{
-		value_generation_algorithm<TValue> alg;
-		return internal::random_creator<TValue, std::is_fundamental<TValue>::value>::create(alg, *this);
+		template <>
+		struct random_creator<bool, true>
+		{
+			static bool create(value_generation_algorithm<bool>& alg, random_source_base& r_src)
+			{
+				return r_src.create<uint32_t>() > r_src.create<uint32_t>();
+			}
+		};
+
+		template <>
+		struct random_creator<float, true>
+		{
+			static float create(value_generation_algorithm<float>& alg, random_source_base& r_src)
+			{
+				auto units = static_cast<float>(r_src.create<int32_t>());
+				auto decimal_points = r_src.create<int32_t>() / std::numeric_limits<int32_t>::max();
+				return units + decimal_points;
+			}
+		};
+
+		template <>
+		struct random_creator<double, true>
+		{
+			static double create(value_generation_algorithm<double>& alg, random_source_base& r_src)
+			{
+				auto units = static_cast<double>(r_src.create<int64_t>());
+				auto decimal_points = r_src.create<int64_t>() / std::numeric_limits<int64_t>::max();
+				return units + decimal_points;
+			}
+		};
 	}
 
 	template <class TValue, class ... TLimits>
 	TValue random_source_base::create(TLimits&&... limits)
 	{
 		value_generation_algorithm<TValue> alg;
+
+		limits::type_scoped_limits<TValue>::adjust_algorithm(*this, alg);
 		limits::apply_algorithm_limits(*this, alg, std::forward<TLimits>(limits)...);
+
 		auto val = internal::random_creator<TValue, std::is_fundamental<TValue>::value>::create(alg, *this);
+
+		limits::type_scoped_limits<TValue>::adjust_value(*this, val);
 		limits::apply_value_limits(*this, val, std::forward<TLimits>(limits)...);
+
 		return std::move(val);
+	}
+
+	template <class TValue, class ... TLimits>
+	void random_source_base::randomize(TValue& value, TLimits&&... limits)
+	{
+		value = std::move(this->create<TValue>(std::forward<TLimits>(limits)...));
+	}
+
+	template <class TValue>
+	TValue random_source_base::select_random(std::initializer_list<TValue> const& l)
+	{
+		auto it = l.begin();
+		std::advance(it, this->create<size_t>() % l.size());
+		return *it;
 	}
 
 	class random_source_impl : public random_source_base

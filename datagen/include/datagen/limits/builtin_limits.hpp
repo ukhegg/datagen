@@ -20,59 +20,72 @@ namespace datagen
 
 				between_t(TBuiltin lower_bound, TBuiltin upper_bound)
 					: lower_bound(lower_bound),
-					  upper_bound(upper_bound)
-				{
-				}
+					  upper_bound(upper_bound) { }
 
 				TBuiltin lower_bound;
 				TBuiltin upper_bound;
 			};
 
-			struct odd_t
-			{
-			};
+			struct odd_t { };
 
-			struct even_t
-			{
-			};
+			struct even_t { };
 		}
-
 
 		template <class TValueType, class TLimitType>
 		void adjust_value(random_source_base&, details::between_t<TLimitType> const& limit, TValueType& value)
 		{
-			if (limit.lower_bound > std::numeric_limits<TValueType>::max()) throw std::runtime_error("lower bound is bigger than target type's max");
-			if (limit.upper_bound < std::numeric_limits<TValueType>::min()) throw std::runtime_error("upper bound is less than target type's min");
-			if (value >= limit.lower_bound && value <= limit.upper_bound) return;
+			using common_type = decltype(std::declval<TValueType>() + std::declval<TLimitType>());
+
+			if (static_cast<double>(limit.lower_bound) > static_cast<double>(std::numeric_limits<TValueType>::max())) {
+				throw std::runtime_error("lower bound is bigger than target type's max");
+			}
+			auto m = std::numeric_limits<TValueType>::min();
+			if (static_cast<double>(limit.upper_bound) < static_cast<double>(m))
+			{
+				throw std::runtime_error("upper bound is less than target type's min");
+			}
+			if (static_cast<double>(value) >= static_cast<double>(limit.lower_bound) &&
+				static_cast<double>(value) <= static_cast<double>(limit.upper_bound)) return;
 
 			auto max_range = static_cast<double>(std::numeric_limits<TValueType>::max())
-				- static_cast<double>(std::numeric_limits<TValueType>::min());
+					- static_cast<double>(std::numeric_limits<TValueType>::min());
 
 			auto k = (static_cast<double>(value) - static_cast<double>(std::numeric_limits<TValueType>::min())) / max_range;
 			auto range = static_cast<double>(limit.upper_bound - limit.lower_bound);
 			value = static_cast<TValueType>(limit.lower_bound + k * range);
 		}
 
+		template <class TLimitType>
+		void adjust_value(random_source_base&, details::between_t<TLimitType> const& limit, double& value)
+		{
+			auto max_range = static_cast<double>(std::numeric_limits<int64_t>::max())
+					- static_cast<double>(std::numeric_limits<int64_t>::min());
+
+			auto k = (static_cast<double>(value) - static_cast<double>(std::numeric_limits<int64_t>::min())) / max_range;
+			auto range = static_cast<double>(limit.upper_bound - limit.lower_bound);
+			value = limit.lower_bound + k * range;
+		}
+
 		template <class TBuiltin>
 		void adjust_value(random_source_base&, details::odd_t const&, TBuiltin& value)
 		{
-			if (value % 2 == 1) return;
-			if (value == std::numeric_limits<TBuiltin>::max()) value -= 1;
+			if(value % 2 == 1) return;
+			if(value == std::numeric_limits<TBuiltin>::max()) value -= 1;
 			else value += 1;
 		}
 
 		template <class TBuiltin>
 		void adjust_value(random_source_base&, details::even_t const&, TBuiltin& value)
 		{
-			if (value % 2 == 0) return;
-			if (value == std::numeric_limits<TBuiltin>::max()) value -= 1;
+			if(value % 2 == 0) return;
+			if(value == std::numeric_limits<TBuiltin>::max()) value -= 1;
 			else value += 1;
 		}
 
-
 		template <class TBuiltin1, class TBuildin2>
 		auto between(TBuiltin1 lower_bound, TBuildin2 upper_bound)
-		-> details::between_t<decltype(lower_bound + upper_bound)>
+		-> typename std::enable_if<std::is_fundamental<TBuiltin1>::value && std::is_fundamental<TBuildin2>::value,
+		                           details::between_t<decltype(lower_bound + upper_bound)>>::type
 		{
 			using r_type = decltype(lower_bound + upper_bound);
 			return details::between_t<r_type>(static_cast<r_type>(lower_bound),
@@ -80,25 +93,29 @@ namespace datagen
 		}
 
 		template <class TBuiltin>
-		details::between_t<TBuiltin> greater_than(TBuiltin val)
+		auto greater_than(TBuiltin val)
+		-> typename std::enable_if<std::is_fundamental<TBuiltin>::value, details::between_t<TBuiltin>>::type
 		{
 			return details::between_t<TBuiltin>(val + std::numeric_limits<TBuiltin>::epsilon(), std::numeric_limits<TBuiltin>::max());
 		}
 
 		template <class TBuiltin>
-		details::between_t<TBuiltin> greater_or_equal_than(TBuiltin val)
+		auto greater_or_equal_than(TBuiltin val)
+		-> typename std::enable_if<std::is_fundamental<TBuiltin>::value, details::between_t<TBuiltin>>::type
 		{
 			return details::between_t<TBuiltin>(val, std::numeric_limits<TBuiltin>::max());
 		}
 
 		template <class TBuiltin>
-		details::between_t<TBuiltin> less_than(TBuiltin val)
+		auto less_than(TBuiltin val)
+		-> typename std::enable_if<std::is_fundamental<TBuiltin>::value, details::between_t<TBuiltin>>::type
 		{
 			return details::between_t<TBuiltin>(std::numeric_limits<TBuiltin>::min(), val - std::numeric_limits<TBuiltin>::epsilon());
 		}
 
 		template <class TBuiltin>
-		details::between_t<TBuiltin> less_or_equal_than(TBuiltin val)
+		auto less_or_equal_than(TBuiltin val)
+		-> typename std::enable_if<std::is_fundamental<TBuiltin>::value, details::between_t<TBuiltin>>::type
 		{
 			return details::between_t<TBuiltin>(std::numeric_limits<TBuiltin>::min(), val);
 		}

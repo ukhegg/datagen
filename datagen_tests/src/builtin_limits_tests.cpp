@@ -12,9 +12,9 @@ TEST_CASE("built-in random limits tests")
 {
 	random_source_impl r_source;
 
-    GIVEN("between_t<int8_t> limit")
-    {
-        auto limit = between(10,20);
+	GIVEN("between_t<int8_t> limit")
+	{
+		auto limit = between(10, 20);
 		WHEN("applying to value in this range")
 		{
 			int8_t val1 = 10;
@@ -31,16 +31,16 @@ TEST_CASE("built-in random limits tests")
 			}
 		}
 
-        WHEN("applying to value bigger than upper bound")
-        {
-            int8_t val = 21;
+		WHEN("applying to value bigger than upper bound")
+		{
+			int8_t val = 21;
 			adjust_value(r_source, limit, val);
-            THEN("values changes to fit range")
-            {
-                REQUIRE(val >= limit.lower_bound);
-                REQUIRE(val <= limit.upper_bound);
-            }
-        }
+			THEN("values changes to fit range")
+			{
+				REQUIRE(val >= limit.lower_bound);
+				REQUIRE(val <= limit.upper_bound);
+			}
+		}
 
 		WHEN("applying to value less than lower bound")
 		{
@@ -52,16 +52,14 @@ TEST_CASE("built-in random limits tests")
 				REQUIRE(val <= limit.upper_bound);
 			}
 		}
-    }
+	}
 
 	GIVEN("between_t<float> limit")
-    {
-
+	{
 		auto limit = between<float>(10, 20);
 
 		WHEN("applying to value in this range")
 		{
-			
 			float val1 = 10;
 			float val2 = 15;
 			float val3 = 20;
@@ -107,10 +105,10 @@ TEST_CASE("built-in random limits tests")
 				REQUIRE(val <= limit.upper_bound);
 			}
 		}
-    }
+	}
 
 	GIVEN("odd limit")
-    {
+	{
 		auto limit = odd<int8_t>();
 
 		WHEN("applying to odd value")
@@ -142,7 +140,7 @@ TEST_CASE("built-in random limits tests")
 				REQUIRE(val % 2 == 1);
 			}
 		}
-    }
+	}
 
 	GIVEN("even limit")
 	{
@@ -178,5 +176,4 @@ TEST_CASE("built-in random limits tests")
 			}
 		}
 	}
-
 }

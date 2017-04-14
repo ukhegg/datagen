@@ -10,8 +10,11 @@ Library for generating random test data
 int main(int argc, char* argv[])
 {
 	std::cout << "The answer to the question of everything is:" << datagen::random<int>() << std::endl;
+	//or just randomize in-place
+	int answer{0};
+	datagen::randomize(answer);
+	std::cout << "The second answer to the question of everything is:" << answer << std::endl;
 	getchar();
-
 }
 ```
 
@@ -191,7 +194,26 @@ template<T> random(TLimits ... limits){
     return val;
 }
 ```
-##### Custom limitations
+#### Scoped limitations
+Datagen supports scoped limits-once created,they affect all instantiations of type
+than are applyed to:
+```cpp
+{
+    auto g = scoped_limit(dummy_algorithm_limit{}).apply_to_type<dummy>();
+    ...
+    auto d1 = r_source.create<dummy>();//dummy_algorithm_limit is applied when generating dummy
+}
+auto d2 = r_source.create<dummy>();//dummy_algorithm_limit is not applied when generating dummy
+```
+You can apply several limits to the same type or the same limit to several types-just be sure
+corresponding adjust_algorithm/adjust_value methods are implemented
+
+Scoped limitations(both algorithm and value) have lower priority compared to limits passed to create(...) method:
+```cpp
+auto g = scoped_limit(limits::between(1,2)).apply_to_type<int>();
+auto i = r_source.create<int>(limits::between(4,5));//you'll get something int [4;5]
+```
+#### Custom limitations
 To add custom `dummy_limit` for `struct dummy`, you need to implement the following free function:
 ```cpp
 namespace datagen{

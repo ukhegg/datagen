@@ -6,42 +6,57 @@
 #define DATAGEN_LIB_STL_LIMITS_HPP
 
 #include <string>
-#include <set>
 #include "datagen/random.hpp"
-#include "datagen/stl_random.hpp"
-#include "datagen/limits/random_limits.hpp"
+#include "datagen/limits/detail/stl_limits_details.hpp"
 
 namespace datagen
 {
 	namespace limits
 	{
-		namespace details
+		struct container_size
 		{
-			template <class _Elem>
-			struct alphabet_limit
+			static details::container_size_limit_t between(size_t min, size_t max)
 			{
-				explicit alphabet_limit(std::basic_string<_Elem> const& chars)
-					: alphabet(chars)
-				{
-				}
+				return details::container_size_limit_t(min, max);
+			}
 
-				std::basic_string<_Elem> alphabet;
-			};
-		}
+			static details::container_size_limit_t not_less_than(size_t min)
+			{
+				return details::container_size_limit_t(min, std::numeric_limits<size_t>::max());
+			}
 
-		template <class _Elem, class _Traits, class _Alloc>
-		void adjust_algorithm(random_source_base& r_source,
-		                      details::alphabet_limit<_Elem> const& limit,
-		                      value_generation_algorithm<std::basic_string<_Elem, _Traits, _Alloc>>& alg_params)
+			static details::container_size_limit_t not_bigger_than(size_t max)
+			{
+				return details::container_size_limit_t(0, max);
+			}
+		};
+
+		struct alphabet
 		{
-			alg_params.alphabet = limit.alphabet;
-		}
+			template <class TChar>
+			static details::alphabet_does_not_contain_limit_t<TChar> does_not_contain(const TChar* chars)
+			{
+				return details::alphabet_does_not_contain_limit_t<TChar>(chars);
+			}
 
-		template <class TChar>
-		details::alphabet_limit<TChar> valid_chars(const TChar* chars)
-		{
-			return details::alphabet_limit<TChar>(chars);
-		}
+			template <class TChar>
+			static details::alphabet_does_not_contain_limit_t<TChar> does_not_contain(std::basic_string<TChar> const& chars)
+			{
+				return details::alphabet_does_not_contain_limit_t<TChar>(chars);
+			}
+
+			template <class TChar>
+			static details::alphabet_contains_limit_t<TChar> consists_of(const TChar* chars)
+			{
+				return details::alphabet_contains_limit_t<TChar>(chars);
+			}
+
+			template <class TChar>
+			static details::alphabet_contains_limit_t<TChar> consists_of(std::basic_string<TChar> const& chars)
+			{
+				return details::alphabet_contains_limit_t<TChar>(chars);
+			}
+		};
 	}
 }
 #endif //DATAGEN_LIB_STL_LIMITS_HPP

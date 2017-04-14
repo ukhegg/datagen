@@ -17,11 +17,11 @@ namespace datagen
 
 		string_t get_random(random_source_base& r_source)
 		{
-			if (alphabet.empty()) throw std::runtime_error("empty alphabet");
+			if(alphabet.empty()) throw std::runtime_error("empty alphabet");
 			string_t res;
 			auto size = r_source.create<size_t>(limits::between(min_size, max_size));
 			res.resize(size);
-			for (auto& c : res)
+			for(auto& c : res)
 			{
 				c = alphabet.at(r_source.create<size_t>(limits::between(0, alphabet.size() - 1)));
 			}
