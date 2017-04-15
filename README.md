@@ -1,5 +1,5 @@
 # Datagen
-Library for generating random test data 
+C++ library for generating random test data 
 
 # Usage
 
