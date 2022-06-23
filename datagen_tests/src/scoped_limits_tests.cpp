@@ -2,7 +2,7 @@
 // Created by ukhegg on 14.04.2017.
 //
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <datagen/limits/scoped_limit.hpp>
 #include <datagen/limits/builtin_limits.hpp>
 #include "datagen/random.hpp"

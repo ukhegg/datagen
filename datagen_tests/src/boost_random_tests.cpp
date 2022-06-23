@@ -1,7 +1,7 @@
 //
 // Created by ukhegg on 13.04.2017.
 //
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <datagen/boost_random.hpp>
 #include "datagen/random.hpp"
 

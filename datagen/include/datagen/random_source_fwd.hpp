@@ -14,10 +14,10 @@ namespace datagen
 		virtual ~random_source_base() = default;
 
 		template <class TValue, class ... TLimits>
-		TValue create(TLimits&& ... limits);
+		TValue create(TLimits const& ... limits);
 
 		template <class TValue, class ... TLimits>
-		void randomize(TValue& value, TLimits&& ... limits);
+		void randomize(TValue& value, TLimits const& ... limits);
 
 		template <class TValue>
 		TValue select_random(std::initializer_list<TValue> const& l);

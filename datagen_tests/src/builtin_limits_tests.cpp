@@ -2,7 +2,7 @@
 // Created by ukhegg on 10.04.2017.
 //
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <datagen/random.hpp>
 
 using namespace datagen;

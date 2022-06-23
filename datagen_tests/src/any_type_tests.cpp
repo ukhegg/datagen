@@ -2,7 +2,7 @@
 // Created by ukhegg on 07.04.2017.
 //
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include "datagen/internal/any_type.hpp"
 
 using namespace datagen::internal;

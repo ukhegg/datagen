@@ -69,25 +69,25 @@ namespace datagen
 	}
 
 	template <class TValue, class ... TLimits>
-	TValue random_source_base::create(TLimits&&... limits)
+	TValue random_source_base::create(TLimits const&... limits)
 	{
 		value_generation_algorithm<TValue> alg;
 
 		limits::type_scoped_limits<TValue>::adjust_algorithm(*this, alg);
-		limits::apply_algorithm_limits(*this, alg, std::forward<TLimits>(limits)...);
+		limits::apply_algorithm_limits(*this, alg, limits...);
 
 		auto val = internal::random_creator<TValue, std::is_fundamental<TValue>::value>::create(alg, *this);
 
 		limits::type_scoped_limits<TValue>::adjust_value(*this, val);
-		limits::apply_value_limits(*this, val, std::forward<TLimits>(limits)...);
+		limits::apply_value_limits(*this, val, limits...);
 
 		return std::move(val);
 	}
 
 	template <class TValue, class ... TLimits>
-	void random_source_base::randomize(TValue& value, TLimits&&... limits)
+	void random_source_base::randomize(TValue& value, TLimits const&... limits)
 	{
-		value = std::move(this->create<TValue>(std::forward<TLimits>(limits)...));
+		value = std::move(this->create<TValue>(limits...));
 	}
 
 	template <class TValue>

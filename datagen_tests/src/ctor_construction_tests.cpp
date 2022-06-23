@@ -2,8 +2,8 @@
 // Created by ukhegg on 07.04.2017.
 //
 
-#include <catch.hpp>
-#include "datagen/internal/ctor_construction.hpp"
+#include <catch2/catch.hpp>
+#include <datagen/internal/ctor_construction.hpp>
 #include <tuple>
 using namespace datagen::internal;
 

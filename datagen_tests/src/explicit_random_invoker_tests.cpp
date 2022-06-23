@@ -1,7 +1,7 @@
 //
 // Created by ukheg on 07.04.2017.
 //
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <datagen/random_source.hpp>
 #include "datagen/internal/explicit_random_invoker.hpp"
 

@@ -1,16 +1,9 @@
 cmake_minimum_required(VERSION 3.6)
 project(datagen_tests)
+set(CMAKE_CXX_STANDARD 17)
 
-if (MSVC)
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP -DBOOST_SYSTEM_NO_DEPRECATED -D_WIN32_WINNT=0x0601 -DTPL_DLL_EXPORTS ")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd\"4251\" /wd\"4275\" /wd\"4005\" /wd\"4503\"")
-else ()
-endif ()
+find_package(Catch2 REQUIRED)
 
-set(CMAKE_CXX_STANDARD 14)
-
-include_directories("${Catch_DIR}/include")
-include_directories("${CMAKE_SOURCE_DIR}/datagen/include")
 
 set(SOURCE_FILES
         src/any_type_tests.cpp
@@ -23,16 +16,12 @@ set(SOURCE_FILES
         src/stl_random_tests.cpp
         src/builtin_limits_tests.cpp
         src/random_limits_tests.cpp
+        src/limit_traits_tests.cpp
         )
 
-if (DEFINED Boost_INCLUDE_DIR)
-    include_directories(${Boost_INCLUDE_DIR})
-    set(SOURCE_FILES ${SOURCE_FILES}
-            src/stl_limits_check.cpp
-            src/boost_random_tests.cpp src/scoped_limits_tests.cpp)
-endif ()
 
 add_executable(datagen_tests ${SOURCE_FILES})
+target_include_directories(datagen_tests PRIVATE ${datagen_SOURCE_DIR}/include)
 
 if (DEFINED Boost_INCLUDE_DIR)
     target_link_libraries(datagen_tests ${Boost_LIBRARIES})

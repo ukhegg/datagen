@@ -36,13 +36,13 @@ namespace datagen
 	}
 
 	template <class TValue, class ... TLimits>
-	TValue random(TLimits&&... limits)
+	TValue random(TLimits const&... limits)
 	{
-		return random_source_instance<int>::instance.create<TValue>(std::forward<TLimits>(limits)...);
+		return random_source_instance<int>::instance.create<TValue>(limits...);
 	}
 
 	template <class TValue, class ... TLimits>
-	void randomize(TValue& value, TLimits&& ... limits)
+	void randomize(TValue& value, TLimits const& ... limits)
 	{
 		random_source_instance<int>::instance.randomize(value, limits...);
 	}

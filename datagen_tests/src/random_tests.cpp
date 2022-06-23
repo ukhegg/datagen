@@ -2,7 +2,7 @@
 // Created by ukhegg on 10.04.2017.
 //
 
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <datagen/random.hpp>
 
 #define CheckType(Type) \
@@ -18,7 +18,7 @@ TEST_CASE("random function tests")
 	{
 		std::vector<bool> generated;
 		generated.resize(1024);
-		for (auto& b : generated) b = datagen::random<bool>();
+		for (auto b : generated) b = datagen::random<bool>();
 
 		auto true_count = std::count(generated.begin(), generated.end(), true);
 		auto false_count = std::count(generated.begin(), generated.end(), false);

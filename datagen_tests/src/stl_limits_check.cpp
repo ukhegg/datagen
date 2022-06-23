@@ -1,7 +1,7 @@
 //
 // Created by ukhegg on 12.04.2017.
 //
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <datagen/stl_random.hpp>
 #include <datagen/limits/stl_limits.hpp>
 

@@ -6,162 +6,147 @@
 #define DATAGEN_LIB_RANDOM_LIMITS_HPP
 
 #include "datagen/value_generation_algorithm.hpp"
+#include <type_traits>
 
 namespace datagen
 {
-	class random_source_base;
+    class random_source_base;
 
-	namespace limits
-	{
-		//template<class T, class L> void adjust_algorithm(random_source_base&, L const&, value_generation_algorithm<T>&);
-		//template<class T, class L> void adjust_value(random_source_base&, L const&, T&);
+    namespace limits
+    {
+        namespace dummies
+        {
+            void adjust_algorithm();
 
-		namespace internal
-		{
-			//void apply(){}
-			// resolves to std::true_type is datagen::limits::apply(random_source_base&,
-			//                                                      TLimit const&,
-			//                                                      value_generation_algorithm<TValue>&) is defined
-			template <class TValue, class TLimit>
-			struct is_algorithm_limit
-			{
-			private:
-				static std::false_type test(...);
+            void adjust_value();
+        }
 
-				template <class V, class L>
-				static typename std::enable_if<std::is_same<decltype(adjust_algorithm(std::declval<random_source_base&>(),
-				                                                                      std::declval<L const&>(),
-				                                                                      std::declval<value_generation_algorithm<V>&>())),
-				                                            void>::value,
-				                               std::true_type>::type test(V, L);
-			public:
-				enum
-				{
-					value = std::is_same<std::true_type, decltype(test(std::declval<TValue>(), std::declval<TLimit>()))>::value
-				};
-			};
+        struct limits_applicator
+        {
 
-			// resolves to std::true_type is datagen::limits::adjust_value(random_source_base&,
-			//                                                      TLimit const&,
-			//                                                      TValue&) is defined
-			template <class TValue, class TLimit>
-			struct is_value_limit
-			{
-			private:
-				static std::false_type test(...);
+            template<class TValue, class TLimit>
+            static auto do_adjust_value(random_source_base &rs,
+                                        TLimit const &l,
+                                        TValue &v)
+            -> typename std::enable_if_t<std::is_same_v<decltype(adjust_value(rs, l, v)), void>,
+                    std::true_type>
+            {
+                using ::datagen::limits::dummies::adjust_value;
+                adjust_value(rs, l, v);
+                return {};
+            }
 
-				template <class V, class L>
-				static typename std::enable_if<std::is_same<decltype(adjust_value(std::declval<random_source_base&>(),
-				                                                                  std::declval<L const&>(),
-				                                                                  std::declval<V&>())),
-				                                            void>::value,
-				                               std::true_type>::type test(V, L);
-			public:
-				enum
-				{
-					value = std::is_same<std::true_type, decltype(test(std::declval<TValue>(), std::declval<TLimit>()))>::value
-				};
-			};
 
-			template <class TValue, class TLimit, bool IsAlgorithmLimit>
-			struct algorithm_tuner
-			{
-				static void apply(random_source_base& r_source, TLimit const& limit, value_generation_algorithm<TValue>& alg) { }
-			};
+            template<class TValue, class TLimit>
+            static auto do_adjust_algorithm(random_source_base &rs,
+                                            TLimit const &l,
+                                            value_generation_algorithm<TValue> &vga)
+            -> typename std::enable_if<std::is_same<decltype(adjust_algorithm(rs, l, vga)), void>::value,
+                    std::true_type>::type
+            {
+                using ::datagen::limits::dummies::adjust_algorithm;
+                adjust_algorithm(rs, l, vga);
+                return {};
+            }
 
-			template <class TValue, class TLimit>
-			struct algorithm_tuner<TValue, TLimit, true>
-			{
-				static_assert(is_algorithm_limit<TValue, TLimit>::value,
-					"TLimit is not a algorithm limit for value_generation_algorithm<TValue>");
+            static std::false_type do_adjust_value(random_source_base &rs, ...)
+            {
+                return {};
+            }
 
-				static void apply(random_source_base& r_source, TLimit const& limit, value_generation_algorithm<TValue>& alg)
-				{
-					limits::adjust_algorithm(r_source, limit, alg);
-				}
-			};
 
-			template <class TValue, class TLimit, bool IsValueLimit>
-			struct value_tuner
-			{
-				static void apply(random_source_base& r_source, TLimit const& limit, TValue& value) { }
-			};
+            static std::false_type do_adjust_algorithm(random_source_base &rs, ...)
+            {
+                return {};
+            }
+        };
 
-			template <class TValue, class TLimit>
-			struct value_tuner<TValue, TLimit, true>
-			{
-				static void apply(random_source_base& r_source, TLimit const& limit, TValue& value)
-				{
-					static_assert(is_value_limit<TValue, TLimit>::value,
-						"TLimit is not a TValue limit");
+        namespace internal
+        {
+            template<class TValue, class TLimit>
+            static constexpr bool is_algorithm_limit_v = std::is_same_v<std::true_type,
+                    decltype(limits_applicator::do_adjust_algorithm(
+                            std::declval<datagen::random_source_base &>(),
+                            std::declval<TLimit const &>(),
+                            std::declval<value_generation_algorithm<TValue> &>()))>;
 
-					limits::adjust_value(r_source, limit, value);
-				}
-			};
 
-			template <class TValue, class ... TLimits>
-			struct enum_limits
-			{
-				static void apply_algorithm_limits(random_source_base& r_source,
-				                                   value_generation_algorithm<TValue>& alg,
-				                                   TLimits&& ... limits) { }
+            template<class TValue, class TLimit>
+            static constexpr bool is_value_limit_v = std::is_same_v<std::true_type,
+                    decltype(limits_applicator::do_adjust_value(
+                            std::declval<datagen::random_source_base &>(),
+                            std::declval<TLimit const &>(),
+                            std::declval<TValue &>()))>;
 
-				static void apply_value_limits(random_source_base& r_source,
-				                               TValue& value,
-				                               TLimits&& ... limits) { }
-			};
 
-			template <class TValue>
-			struct enum_limits<TValue, void>
-			{
-				static void apply_algorithm_limits(random_source_base& r_source, value_generation_algorithm<TValue>& alg) { }
+            template<class TValue, class ... TLimits>
+            struct limits_enumerator_t
+            {
+            };
 
-				static void apply_value_limits(random_source_base& r_source, TValue& value) { }
-			};
+            template<class TValue>
+            struct limits_enumerator_t<TValue>
+            {
+                static void apply_algorithm_limits(random_source_base &r_source,
+                                                   value_generation_algorithm<TValue> &alg)
+                {
+                }
 
-			template <class TValue, class TLimit, class ... TOtherLimits>
-			struct enum_limits<TValue, TLimit, TOtherLimits...>
-			{
-				static_assert(is_algorithm_limit<TValue, TLimit>::value || is_value_limit<TValue, TLimit>::value,
-					"TLimit is nor algorithm, nor value limit for TValue");
-				using algorith_tuner_t = algorithm_tuner<TValue, TLimit, is_algorithm_limit<TValue, TLimit>::value>;
-				using value_tuner_t = value_tuner<TValue, TLimit, is_value_limit<TValue, TLimit>::value>;
+                static void apply_value_limits(random_source_base &r_source,
+                                               TValue &value)
+                {
+                }
+            };
 
-				static void apply_algorithm_limits(random_source_base& r_source,
-				                                   value_generation_algorithm<TValue>& alg,
-				                                   TLimit&& limit,
-				                                   TOtherLimits&& ... other_limits)
-				{
-					algorith_tuner_t::apply(r_source, std::forward<TLimit>(limit), alg);
-					enum_limits<TValue, TOtherLimits...>::apply_algorithm_limits(r_source, alg, std::forward<TOtherLimits>(other_limits)...);
-				}
+            template<class TValue, class TLimit, class ... TOtherLimits>
+            struct limits_enumerator_t<TValue, TLimit, TOtherLimits...>
+            {
+                static_assert(is_algorithm_limit_v<TValue, TLimit> || is_value_limit_v<TValue, TLimit>,
+                              "TLimit is neither algorithm nor value limit for TValue");
 
-				static void apply_value_limits(random_source_base& r_source,
-				                               TValue& value,
-				                               TLimit&& limit,
-				                               TOtherLimits&& ... other_limits)
-				{
-					value_tuner_t::apply(r_source, std::forward<TLimit>(limit), value);
-					enum_limits<TValue, TOtherLimits...>::apply_value_limits(r_source, value, std::forward<TOtherLimits>(other_limits)...);
-				}
-			};
-		}
+                static void apply_algorithm_limits(random_source_base &r_source,
+                                                   value_generation_algorithm<TValue> &alg,
+                                                   TLimit const &limit,
+                                                   TOtherLimits const &... other_limits)
+                {
+                    limits_applicator::do_adjust_algorithm(r_source, limit, alg);
+                    limits_enumerator_t<TValue, TOtherLimits...>::apply_algorithm_limits(r_source,
+                                                                                         alg,
+                                                                                         other_limits...);
+                }
 
-		template <class TValue, class ... TLimits>
-		void apply_algorithm_limits(random_source_base& r_source,
-		                            value_generation_algorithm<TValue>& alg,
-		                            TLimits&& ... limits)
-		{
-			internal::enum_limits<TValue, TLimits...>::apply_algorithm_limits(r_source, alg, std::forward<TLimits>(limits)...);
-		}
+                static void apply_value_limits(random_source_base &r_source,
+                                               TValue &value,
+                                               TLimit const &limit,
+                                               TOtherLimits const &... other_limits)
+                {
+                    limits_applicator::do_adjust_value(r_source, limit, value);
+                    limits_enumerator_t<TValue, TOtherLimits...>::apply_value_limits(r_source,
+                                                                                     value,
+                                                                                     other_limits...);
+                }
+            };
+        }
 
-		template <class TValue, class ... TLimits>
-		void apply_value_limits(random_source_base& r_source,
-		                        TValue& value,
-		                        TLimits&& ... limits)
-		{
-			internal::enum_limits<TValue, TLimits...>::apply_value_limits(r_source, value, std::forward<TLimits>(limits)...);
-		}
-	}
+        template<class TValue, class ... TLimits>
+        void apply_algorithm_limits(random_source_base &r_source,
+                                    value_generation_algorithm<TValue> &alg,
+                                    TLimits const &... limits)
+        {
+            internal::limits_enumerator_t<TValue, TLimits...>::apply_algorithm_limits(r_source,
+                                                                                      alg,
+                                                                                      limits...);
+        }
+
+        template<class TValue, class ... TLimits>
+        void apply_value_limits(random_source_base &r_source,
+                                TValue &value,
+                                TLimits const &... limits)
+        {
+            internal::limits_enumerator_t<TValue, TLimits...>::apply_value_limits(r_source,
+                                                                                  value,
+                                                                                  limits...);
+        }
+    }
 }
 #endif //DATAGEN_LIB_RANDOM_LIMITS_HPP

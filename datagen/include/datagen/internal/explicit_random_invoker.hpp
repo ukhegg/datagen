@@ -19,7 +19,7 @@ namespace datagen
 		struct has_random_generation_algorithm
 		{
 		private:
-			static std::false_type test(...) {};
+			static std::false_type test(...) {return {};}
 
 			template <class C>
 			static value_generation_algorithm<C>& get_alg() { return std::declval<C>(); }
