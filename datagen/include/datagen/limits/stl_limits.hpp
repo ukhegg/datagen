@@ -15,6 +15,11 @@ namespace datagen
 	{
 		struct container_size
 		{
+            static container_size_limit_t equals(size_t value)
+            {
+                return container_size_limit_t{value, value};
+            }
+
 			static container_size_limit_t between(size_t min, size_t max)
 			{
 				return container_size_limit_t(min, max);

@@ -6,6 +6,8 @@
 #define DATAGEN_LIB_SCOPED_LIMIT_HPP
 
 #include <type_traits>
+#include <stdexcept>
+#include <memory>
 #include "datagen/value_generation_algorithm.hpp"
 #include "datagen/limits/random_limits.hpp"
 

@@ -17,7 +17,7 @@ set(SOURCE_FILES
         src/builtin_limits_tests.cpp
         src/random_limits_tests.cpp
         src/limit_traits_tests.cpp
-        )
+        ../datagen/include/datagen/stl_select_random.hpp src/stl_select_random_tests.cpp)
 
 
 add_executable(datagen_tests ${SOURCE_FILES})

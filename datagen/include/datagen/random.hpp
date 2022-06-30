@@ -52,5 +52,8 @@ namespace datagen
 	{
 		return random_source_instance<int>::instance.select_random(l);
 	}
+
+
+
 }
 #endif //DATAGEN_RANDOM_HPP
