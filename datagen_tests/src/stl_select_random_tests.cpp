@@ -2,7 +2,7 @@
 // Created by Zeliukin Nick on 30.06.22.
 //
 #include <datagen/stl_select_random.hpp>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 using namespace datagen;
 

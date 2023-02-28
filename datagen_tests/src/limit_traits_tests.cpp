@@ -4,7 +4,7 @@
 
 
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <datagen/limits/builtin_limits.hpp>
 #include <datagen/random.hpp>
 

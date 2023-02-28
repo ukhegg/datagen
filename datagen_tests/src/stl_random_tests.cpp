@@ -2,7 +2,7 @@
 // Created by ukhegg on 10.04.2017.
 //
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <datagen/stl_random.hpp>
 #include <datagen/random.hpp>
 #include "datagen/limits/stl_limits.hpp"

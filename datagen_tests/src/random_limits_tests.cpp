@@ -2,7 +2,7 @@
 // Created by ukhegg on 11.04.2017.
 //
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <datagen/random.hpp>
 #include <list>
 #include "datagen/random_algorithms/std_array.hpp"

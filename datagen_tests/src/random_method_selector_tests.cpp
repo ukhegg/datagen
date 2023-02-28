@@ -2,7 +2,7 @@
 // Created by ukhegg on 07.04.2017.
 //
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 #include "datagen/internal/random_method_selector.hpp"
 

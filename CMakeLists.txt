@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.0)
 project(datagen_lib)
 
+set(CMAKE_TOOLCHAIN_FILE, ${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 
+include(${CMAKE_BINARY_DIR}/conan_toolchain.cmake)
 find_package(Boost REQUIRED COMPONENTS system filesystem random)
 
 

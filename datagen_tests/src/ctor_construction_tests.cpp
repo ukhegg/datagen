@@ -2,7 +2,7 @@
 // Created by ukhegg on 07.04.2017.
 //
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <datagen/internal/ctor_construction.hpp>
 #include <tuple>
 using namespace datagen::internal;
