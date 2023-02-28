@@ -6,7 +6,7 @@ import os
 
 class DatagenRecipe(ConanFile):
     name = 'datagen'
-    version = '1.0.3'
+    version = '1.0.4'
     user = 'ukhegg'
     channel = 'stable'
     url = 'https://github.com/ukhegg/datagen.git'
@@ -32,3 +32,4 @@ class DatagenRecipe(ConanFile):
 
     def package_info(self):
         self.cpp_info.include_dirs = 'include'
+
