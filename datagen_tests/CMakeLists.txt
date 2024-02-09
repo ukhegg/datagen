@@ -23,7 +23,7 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES})
 target_include_directories(${PROJECT_NAME}
         PRIVATE ${datagen_SOURCE_DIR}/include
                 ${Catch2_INCLUDE_DIR})
-target_link_libraries(${PROJECT_NAME} ${Catch2_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} Catch2::Catch2WithMain)
 
 if (DEFINED Boost_INCLUDE_DIR)
     target_link_libraries(${PROJECT_NAME} Boost::system Boost::filesystem Boost::random)

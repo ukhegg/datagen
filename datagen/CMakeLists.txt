@@ -1,5 +1,15 @@
-cmake_minimum_required(VERSION 3.0)
-project(datagen)
+cmake_minimum_required(VERSION 3.12)
+set(CMAKE_HOMEPAGE_COMPILER g++)
+
+project(datagen
+        VERSION 1.0.5
+        DESCRIPTION "Header-only library for generating random test data & structures"
+        HOMEPAGE_URL "https://github.com/ukhegg/datagen")
+
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
@@ -24,7 +34,7 @@ set(SOURCES
         include/datagen/random.hpp
         include/datagen/stl_random.hpp
         include/datagen/value_generation_algorithm.hpp
-        )
+)
 
 if (DEFINED Boost_INCLUDE_DIR)
     set(SOURCES ${SOURCES}
@@ -32,9 +42,45 @@ if (DEFINED Boost_INCLUDE_DIR)
             include/datagen/random_algorithms/boost_posix_time.hpp
             include/datagen/random_algorithms/boost_ip_address.hpp
             include/datagen/boost_random.hpp
-            )
-	include_directories(${Boost_INCLUDE_DIR})
+    )
+    include_directories(${Boost_INCLUDE_DIR})
 endif ()
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-add_custom_target(datagen SOURCES ${SOURCES})
+add_library(datagen INTERFACE)
+target_include_directories(datagen INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_compile_features(datagen INTERFACE cxx_std_17)
+
+
+install(TARGETS datagen
+        EXPORT ${PROJECT_NAME}_Targets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+write_basic_package_version_file("datagenConfigVersion.cmake"
+        VERSION ${PROJECT_VERSION}
+        COMPATIBILITY SameMajorVersion)
+
+configure_package_config_file(
+        "${PROJECT_SOURCE_DIR}/cmake/${PROJECT_NAME}Config.cmake.in"
+        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        INSTALL_DESTINATION
+        ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
+
+install(EXPORT ${PROJECT_NAME}_Targets
+        FILE ${PROJECT_NAME}Targets.cmake
+        NAMESPACE ${PROJECT_NAME}::
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
+
+install(FILES "${PROJECT_BINARY_DIR}/${PROJECT_NAME}Config.cmake"
+        "${PROJECT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/${PROJECT_NAME}/cmake)
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/datagen DESTINATION include)
+
+
+
+
